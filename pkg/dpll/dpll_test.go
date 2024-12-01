@@ -262,7 +262,7 @@ func TestSysfs(t *testing.T) {
 }
 
 type dpllTestCase struct {
-	localMaxHoldoverOffSet uint64
+	localMaxHoldoverOffset uint64
 	localHoldoverTimeout   uint64
 	maxInSpecOffset        uint64
 	expectedSlope          float64
@@ -273,7 +273,7 @@ func TestSlopeAndTimer(t *testing.T) {
 
 	testCase := []dpllTestCase{
 		{
-			localMaxHoldoverOffSet: 6000,       // in ns
+			localMaxHoldoverOffset: 6000,       // in ns
 			localHoldoverTimeout:   100,        // in sec
 			maxInSpecOffset:        100,        // in ns
 			expectedSlope:          6000 / 100, // 60ns rate of change
@@ -281,9 +281,9 @@ func TestSlopeAndTimer(t *testing.T) {
 		},
 	}
 	for _, tt := range testCase {
-		d := dpll.NewDpll(100, tt.localMaxHoldoverOffSet, tt.localHoldoverTimeout, tt.maxInSpecOffset,
+		d := dpll.NewDpll(100, tt.localMaxHoldoverOffset, tt.localHoldoverTimeout, tt.maxInSpecOffset,
 			"test", []event.EventSource{}, dpll.MOCK, map[string]map[string]string{})
-		assert.Equal(t, tt.localMaxHoldoverOffSet, d.LocalMaxHoldoverOffSet, "localMaxHoldover offset")
+		assert.Equal(t, tt.localMaxHoldoverOffset, d.LocalMaxHoldoverOffset, "localMaxHoldover offset")
 		assert.Equal(t, tt.localHoldoverTimeout, d.LocalHoldoverTimeout, "Local holdover timeout")
 		assert.Equal(t, tt.maxInSpecOffset, d.MaxInSpecOffset, "Max In Spec Offset")
 		assert.Equal(t, tt.expectedTimeout, d.Timer(), "Timer in secs")

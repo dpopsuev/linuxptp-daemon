@@ -28,7 +28,7 @@ spec:
       e810:
         enableDefaultConfig: false
         settings:
-          LocalMaxHoldoverOffSet: 1500
+          LocalMaxHoldoverOffset: 1500
           LocalHoldoverTimeout: 14400
           MaxInSpecOffset: 100
         phaseOffsetPins:

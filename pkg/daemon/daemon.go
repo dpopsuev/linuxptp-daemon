@@ -493,7 +493,7 @@ func (dn *Daemon) applyNodePtpProfile(runID int, nodeProfile *ptpv1.PtpProfile) 
 			messageTag = fmt.Sprintf("[ts2phc.%d.config:{level}]", runID)
 			leap.LeapMgr.SetPtp4lConfigPath(fmt.Sprintf("ptp4l.%d.config", runID))
 			// DPLL is considered to be running along with ts2phc
-			maxInSpecOffset, maxHoldoverOffSet, maxHoldoverTimeout, inSpecTimer, frequencyTraceable := dpll.CalculateTimer(nodeProfile)
+			maxInSpecOffset, maxHoldoverOffset, maxHoldoverTimeout, inSpecTimer, frequencyTraceable := dpll.CalculateTimer(nodeProfile)
 			// update ts2phcOpts with the new config
 			if configOpts != nil && *configOpts != "" {
 				if !strings.Contains(*configOpts, "--ts2phc.holdover") {
@@ -506,7 +506,7 @@ func (dn *Daemon) applyNodePtpProfile(runID int, nodeProfile *ptpv1.PtpProfile) 
 				// need more testing to confirm
 				if !strings.Contains(*configOpts, "--servo_offset_threshold") {
 					if frequencyTraceable {
-						*configOpts += " --servo_offset_threshold " + strconv.FormatInt(maxHoldoverOffSet, 10)
+						*configOpts += " --servo_offset_threshold " + strconv.FormatInt(maxHoldoverOffset, 10)
 					} else {
 						*configOpts += " --servo_offset_threshold " + strconv.FormatInt(maxInSpecOffset, 10)
 					}
@@ -656,7 +656,7 @@ func (dn *Daemon) applyNodePtpProfile(runID int, nodeProfile *ptpv1.PtpProfile) 
 
 			// init dpll
 			// TODO: Try to inject DPLL depProcess via plugin ?
-			var localMaxHoldoverOffSet uint64 = dpll.LocalMaxHoldoverOffSet
+			var localMaxHoldoverOffset uint64 = dpll.LocalMaxHoldoverOffset
 			var localHoldoverTimeout uint64 = dpll.LocalHoldoverTimeout
 			var maxInSpecOffset uint64 = dpll.MaxInSpecOffset
 			var clockId uint64
@@ -678,8 +678,8 @@ func (dn *Daemon) applyNodePtpProfile(runID int, nodeProfile *ptpv1.PtpProfile) 
 						if err != nil {
 							continue
 						}
-						if k == dpll.LocalMaxHoldoverOffSetStr {
-							localMaxHoldoverOffSet = i
+						if k == dpll.LocalMaxHoldoverOffsetStr {
+							localMaxHoldoverOffset = i
 						}
 						if k == dpll.LocalHoldoverTimeoutStr {
 							localHoldoverTimeout = i
@@ -700,7 +700,7 @@ func (dn *Daemon) applyNodePtpProfile(runID int, nodeProfile *ptpv1.PtpProfile) 
 					// here we have multiple dpll objects identified by clock id
 					// depends on will be either PPS or  GNSS,
 					// ONLY the one with GNSS dependency will go to HOLDOVER
-					dpllDaemon := dpll.NewDpll(clockId, localMaxHoldoverOffSet, localHoldoverTimeout,
+					dpllDaemon := dpll.NewDpll(clockId, localMaxHoldoverOffset, localHoldoverTimeout,
 						maxInSpecOffset, iface.Name, eventSource, dpll.NONE, dn.GetPhaseOffsetPinFilter(nodeProfile))
 					glog.Infof("depending on %s", dpllDaemon.DependsOn())
 					dpllDaemon.CmdInit()

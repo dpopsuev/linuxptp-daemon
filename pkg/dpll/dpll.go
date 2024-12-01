@@ -27,12 +27,12 @@ const (
 	DPLL_LOCKED_HO_ACQ = 3
 	DPLL_HOLDOVER      = 4
 
-	LocalMaxHoldoverOffSet = 1500  //ns
+	LocalMaxHoldoverOffset = 1500  //ns
 	LocalHoldoverTimeout   = 14400 //secs
 	MaxInSpecOffset        = 100   //ns
 	monitoringInterval     = 1 * time.Second
 
-	LocalMaxHoldoverOffSetStr = "LocalMaxHoldoverOffSet"
+	LocalMaxHoldoverOffsetStr = "LocalMaxHoldoverOffset"
 	LocalHoldoverTimeoutStr   = "LocalHoldoverTimeout"
 	MaxInSpecOffsetStr        = "MaxInSpecOffset"
 	ClockIdStr                = "clockId"
@@ -85,7 +85,7 @@ func (d *DependingStates) UpdateState(source event.EventSource) {
 
 // DpllConfig ... DPLL configuration
 type DpllConfig struct {
-	LocalMaxHoldoverOffSet uint64
+	LocalMaxHoldoverOffset uint64
 	LocalHoldoverTimeout   uint64
 	MaxInSpecOffset        uint64
 	iface                  string
@@ -278,16 +278,16 @@ func (d *DpllConfig) unRegisterAll() {
 }
 
 // NewDpll ... create new DPLL process
-func NewDpll(clockId uint64, localMaxHoldoverOffSet, localHoldoverTimeout, maxInSpecOffset uint64,
+func NewDpll(clockId uint64, localMaxHoldoverOffset, localHoldoverTimeout, maxInSpecOffset uint64,
 	iface string, dependsOn []event.EventSource, apiType dpllApiType, phaseOffsetPinFilter map[string]map[string]string) *DpllConfig {
-	glog.Infof("Calling NewDpll with clockId %x, localMaxHoldoverOffSet=%d, localHoldoverTimeout=%d, maxInSpecOffset=%d, iface=%s, phase offset pin filter=%v", clockId, localMaxHoldoverOffSet, localHoldoverTimeout, maxInSpecOffset, iface, phaseOffsetPinFilter)
+	glog.Infof("Calling NewDpll with clockId %x, localMaxHoldoverOffset=%d, localHoldoverTimeout=%d, maxInSpecOffset=%d, iface=%s, phase offset pin filter=%v", clockId, localMaxHoldoverOffset, localHoldoverTimeout, maxInSpecOffset, iface, phaseOffsetPinFilter)
 	d := &DpllConfig{
 		clockId:                clockId,
-		LocalMaxHoldoverOffSet: localMaxHoldoverOffSet,
+		LocalMaxHoldoverOffset: localMaxHoldoverOffset,
 		LocalHoldoverTimeout:   localHoldoverTimeout,
 		MaxInSpecOffset:        maxInSpecOffset,
 		slope: func() float64 {
-			return float64(localMaxHoldoverOffSet) / float64(localHoldoverTimeout)
+			return float64(localMaxHoldoverOffset) / float64(localHoldoverTimeout)
 		}(),
 		timer:                0,
 		state:                event.PTP_FREERUN,
@@ -852,11 +852,11 @@ func (d *DpllConfig) holdover() {
 }
 
 func (d *DpllConfig) isMaxHoldoverOffsetInRange() bool {
-	if d.phaseOffset <= int64(d.LocalMaxHoldoverOffSet) {
+	if d.phaseOffset <= int64(d.LocalMaxHoldoverOffset) {
 		return true
 	}
 	glog.Infof("in holdover- dpll offset is out of range:  max %d, current %d",
-		d.LocalMaxHoldoverOffSet, d.phaseOffset)
+		d.LocalMaxHoldoverOffset, d.phaseOffset)
 	return false
 }
 func (d *DpllConfig) isInSpecOffsetInRange() bool {
@@ -926,7 +926,7 @@ func (d *DpllConfig) sysfs(iface string) (phaseState, frequencyState, phaseOffse
 }
 
 func CalculateTimer(nodeProfile *ptpv1.PtpProfile) (int64, int64, int64, int64, bool) {
-	var localMaxHoldoverOffSet uint64 = LocalMaxHoldoverOffSet
+	var localMaxHoldoverOffset uint64 = LocalMaxHoldoverOffset
 	var localHoldoverTimeout uint64 = LocalHoldoverTimeout
 	var maxInSpecOffset uint64 = MaxInSpecOffset
 
@@ -935,8 +935,8 @@ func CalculateTimer(nodeProfile *ptpv1.PtpProfile) (int64, int64, int64, int64, 
 		if err != nil {
 			continue
 		}
-		if k == LocalMaxHoldoverOffSetStr {
-			localMaxHoldoverOffSet = i
+		if k == LocalMaxHoldoverOffsetStr {
+			localMaxHoldoverOffset = i
 		}
 		if k == LocalHoldoverTimeoutStr {
 			localHoldoverTimeout = i
@@ -945,7 +945,7 @@ func CalculateTimer(nodeProfile *ptpv1.PtpProfile) (int64, int64, int64, int64, 
 			maxInSpecOffset = i
 		}
 	}
-	slope := float64(localMaxHoldoverOffSet) / float64(localHoldoverTimeout)
+	slope := float64(localMaxHoldoverOffset) / float64(localHoldoverTimeout)
 	inSpecTimer := int64(math.Round(float64(maxInSpecOffset) / slope))
-	return int64(maxInSpecOffset), int64(localMaxHoldoverOffSet), int64(localHoldoverTimeout), inSpecTimer, false
+	return int64(maxInSpecOffset), int64(localMaxHoldoverOffset), int64(localHoldoverTimeout), inSpecTimer, false
 }
